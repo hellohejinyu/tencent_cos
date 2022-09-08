@@ -12,10 +12,13 @@ class COSClientBase {
   COSClientBase(this._config);
 
   ///生成签名
-  String getSign(String method, String key,
-      {Map<String, String?> headers = const {},
-      Map<String, String?> params = const {},
-      DateTime? signTime}) {
+  String getSign(
+    String method,
+    String key, {
+    Map<String, String?> headers = const {},
+    Map<String, String?> params = const {},
+    DateTime? signTime,
+  }) {
     if (_config.anonymous) {
       return "";
     } else {
@@ -58,7 +61,7 @@ class COSClientBase {
     Map<String, String?> res = {};
     const validHeaders = {
       "cache-control",
-      "content-disposition",
+      // "content-disposition",
       "content-encoding",
       "content-type",
       "expires",
@@ -71,7 +74,7 @@ class COSClientBase {
         if (key == "content-length" && src["content-length"] == "0") {
           continue;
         }
-        res[key] = src[key];
+        res[key.toLowerCase()] = src[key];
       }
     }
     return res;
@@ -96,10 +99,13 @@ class COSClientBase {
     return hex.encode(Hmac(sha1, key.codeUnits).convert(msg.codeUnits).bytes);
   }
 
-  Future<HttpClientRequest> getRequest(String method, String action,
-      {Map<String, String?> params = const {},
-      Map<String, String?> headers = const {},
-      String? token}) async {
+  Future<HttpClientRequest> getRequest(
+    String method,
+    String action, {
+    Map<String, String?> params = const {},
+    Map<String, String?> headers = const {},
+    String? token,
+  }) async {
     String urlParams =
         params.keys.toList().map((e) => e + "=" + (params[e] ?? "")).join("&");
     if (urlParams.isNotEmpty) {
@@ -121,9 +127,9 @@ class COSClientBase {
     req.headers.forEach((name, values) {
       _headers[name] = values[0];
     });
-    var sighn = getSign(method, action, params: params, headers: _headers);
-    req.headers.add("Authorization", sighn);
-    if(token != null){
+    var sign = getSign(method, action, params: params, headers: _headers);
+    req.headers.add("Authorization", sign);
+    if (token != null) {
       req.headers.add("x-cos-security-token", token);
     }
     return req;
